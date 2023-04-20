@@ -110,7 +110,7 @@ int open_display()
 
 /************************************************************************/
 /* FABRIQUE_WINDOW()							*/
-/* Cette fonction crée une fenetre X et l'affiche à l'écran.	        */
+/* Cette fonction crï¿½e une fenetre X et l'affiche ï¿½ l'ï¿½cran.	        */
 /************************************************************************/
 Window fabrique_window(char *nom_fen,int x,int y,int width,int height,int zoom)
 {
@@ -154,7 +154,7 @@ Window fabrique_window(char *nom_fen,int x,int y,int width,int height,int zoom)
 
 /****************************************************************************/
 /* CREE_XIMAGE()							    */
-/* Crée une XImage à partir d'un tableau de float                          */
+/* Crï¿½e une XImage ï¿½ partir d'un tableau de float                          */
 /* L'image peut subir un zoom.						    */
 /****************************************************************************/
 XImage* cree_Ximage(float** mat,int z,int length,int width)
@@ -223,7 +223,7 @@ XImage* cree_Ximage(float** mat,int z,int length,int width)
 
 /****************************************************************************/
 /* CREE_XIMAGECOUL()							    */
-/* Crée une XImage à partir d'un tableau 3 d de float                       */
+/* Crï¿½e une XImage ï¿½ partir d'un tableau 3 d de float                       */
 /* L'image peut subir un zoom.						    */
 /****************************************************************************/
 XImage* cree_XimageCoul(float*** matRVB,int z,int length,int width)
@@ -510,14 +510,14 @@ int main (int argc, char **argv)
   //Il faut travailler ici ...et dans > // FONCTIONS TPs
 
   //Un exemple ou la matrice de points MatPict est remplie
-  //par une image couleur donné par l'équation d'en bas... et non pas par 
+  //par une image couleur donnï¿½ par l'ï¿½quation d'en bas... et non pas par 
   //les bassins d'attractions
 
   //for(k=0;k<TROIS;k++) for(i=0;i<HEIGHT;i++) for(j=0;j<WIDTH;j++) 
   //   {  MatPict[k][i][j]=(i+j*k*i)%255; }
 
   //Un exemple ou la matrice de points MatPict est remplie
-  //par une image en niveaux de gris  donné par l'équation d'en bas... et non pas par 
+  //par une image en niveaux de gris  donnï¿½ par l'ï¿½quation d'en bas... et non pas par 
   //la vitesse de convergence
 
   for(k=0;k<TROIS;k++) for(i=0;i<HEIGHT;i++) for(j=0;j<WIDTH;j++) 
@@ -545,7 +545,7 @@ int main (int argc, char **argv)
  {
  //>Uuverture Session Graphique
  if (open_display()<0) printf(" Impossible d'ouvrir une session graphique");
- sprintf(nomfen_ppicture,"Évolution du Graphe");
+ sprintf(nomfen_ppicture,"ï¿½volution du Graphe");
  win_ppicture=fabrique_window(nomfen_ppicture,10,10,HEIGHT,WIDTH,zoom);
  x_ppicture=cree_XimageCoul(MatPict,zoom,HEIGHT,WIDTH);
 

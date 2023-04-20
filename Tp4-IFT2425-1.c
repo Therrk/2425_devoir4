@@ -1,12 +1,12 @@
 //------------------------------------------------------
 // module  : Tp4-IFT2425-1.c
-// author  : 
+// author  : Élie Leblanc, Louis Malenfant-Poulin
 // date    : 
 // version : 1.0
 // language: C++
 // note    :
 //------------------------------------------------------
-//  
+//  elie.leblanc@umontreal.ca
 
 //------------------------------------------------
 // FICHIERS INCLUS -------------------------------
@@ -56,9 +56,9 @@ GC	  gc;
 #define X_4_INI 0.0 
  
 //-Cst-Runge-Kutta
-#define H            0.0001  
+#define H            0.1  
 #define T_0          0.0                 
-#define T_F         30.0 
+#define T_F         20.0 
 #define NB_INTERV (T_F-T_0)/H
    
  //-Cst-Image                             
@@ -370,32 +370,55 @@ float speedx=0;
 float speedy=0;
 
 
-float* RKFx(float posx, float posy, float oldposx, float oldposy, float oldvit){
-    
-    
-    float sum1=(pos1x-posx)/pow(sqrt((pow(pos1x-posx,2)+pow(pos1y-posy,2)+pow(d,2))),3);
+float sumcalc(float posx,float posy){
+      float sum1=(pos1x-posx)/pow(sqrt((pow(pos1x-posx,2)+pow(pos1y-posy,2)+pow(d,2))),3);
     float sum2=(pos2x-posx)/pow(sqrt((pow(pos2x-posx,2)+pow(pos2y-posy,2)+pow(d,2))),3);
     float sum3=(pos3x-posx)/pow(sqrt((pow(pos3x-posx,2)+pow(pos3y-posy,2)+pow(d,2))),3);
-    float vit=(posx-oldposx)/1000;
-    float res=vit-oldvit+r*(posx-oldposx)-(sum1+sum2+sum3)+c;
-    float* result=dmatrix_allocate_1d(2);
-    result[0]=res;
-    result[1]=vit;
-    return result;
+    return sum1+sum2+sum3+c;
+}
 
-};
-float* RKFy(float posx, float posy, float oldposx, float oldposy, float oldvit){
-    float sum1=(pos1y-posy)/pow(sqrt((pow(pos1x-posx,2)+pow(pos1y-posy,2)+pow(d,2))),3);
-    float sum2=(pos2y-posy)/pow(sqrt((pow(pos2x-posx,2)+pow(pos2y-posy,2)+pow(d,2))),3);
-    float sum3=(pos3y-posy)/pow(sqrt((pow(pos3x-posx,2)+pow(pos3y-posy,2)+pow(d,2))),3);
-    float vit=(posy-oldposy)/1000;
-    float res=(vit-oldvit)+r*(posy-oldposy)-(sum1+sum2+sum3)+c;
-    float *result=dmatrix_allocate_1d(2);
-    result[0]=res;
-    result[1]=vit;
-    return result;
+float* RKFx(float posx, float posy, float vitx){
+    float k11= H*(r*vitx-sumcalc(posx,posy));
+    float k12 = H*(vitx);
+    float k21 = H*(r*(vitx+k11/4)-sumcalc(posx+H/4,posy));
+    float k22 = H*(vitx+k11/4);
+    float k31 = H*(r*(vitx+3*k11/32+9*k21/32)-sumcalc(posx+3*H/8, posy));
+    float k32 = H*(vitx+3*k11/32+9*k21/32);
+    float k41 = H*(r*(vitx+1932*k11/2197+7200*k21/2197+7296*k31/2197)-sumcalc(posx+12*H/13, posy));
+    float k42 = H*(vitx+1932*k11/2197+7200*k21/2197+7296*k31/2197);
+    float k51 = H*(r*(vitx+429*k11/216-8*k21+3680*k31/513-845*k41/4104)-sumcalc(posx+H, posy));
+    float k52 = H*(vitx+429*k11/216-8*k21+3680*k31/513-845*k41/4104);
+    float k61 = H*(r*(vitx-8*k11/27+2*k21-3544*k31/2565-1859*k41/4104-11*k51/40)-sumcalc(posx+H/2, posy));
+    float k62 = H*(vitx+-8*k11/27+2*k21-3544*k31/2565-1859*k41/4104-11*k51/40);
+    float newvitx = vitx+25*k11/216+1408*k31/2565+2*k41/3+k51/6;
+    float newposx = posx+25*k11/216+1408*k31/2565+2*k41/3+k51/6;
+    float* reponse = dmatrix_allocate_1d(2);
+    reponse[0]=newposx;
+    reponse[0]=newvitx;
+    return reponse;
+}
 
-};
+
+float* RKFy(float posx, float posy, float vity){
+    float k11= H*(r*vity-sumcalc(posx,posy));
+    float k12 = H*(vity);
+    float k21 = H*(r*(vity+k11/4)-sumcalc(posx,posy+H/4));
+    float k22 = H*(vity+k11/4);
+    float k31 = H*(r*(vity+3*k11/32+9*k21/32)-sumcalc(posx, posy+3*H/8));
+    float k32 = H*(vity+3*k11/32+9*k21/32);
+    float k41 = H*(r*(vity+1932*k11/2197+7200*k21/2197+7296*k31/2197)-sumcalc(posx, posy+12*H/13));
+    float k42 = H*(vity+1932*k11/2197+7200*k21/2197+7296*k31/2197);
+    float k51 = H*(r*(vity+429*k11/216-8*k21+3680*k31/513-845*k41/4104)-sumcalc(posx, posy+H));
+    float k52 = H*(vity+429*k11/216-8*k21+3680*k31/513-845*k41/4104);
+    float k61 = H*(r*(vity-8*k11/27+2*k21-3544*k31/2565-1859*k41/4104-11*k51/40)-sumcalc(posx, posy+H/2));
+    float k62 = H*(vity+-8*k11/27+2*k21-3544*k31/2565-1859*k41/4104-11*k51/40);
+    float newvity = vity+25*k11/216+1408*k31/2565+2*k41/3+k51/6;
+    float newposy = posy+25*k11/216+1408*k31/2565+2*k41/3+k51/6;
+    float* reponse = dmatrix_allocate_1d(2);
+    reponse[0]=newposy;
+    reponse[0]=newvity;
+    return reponse;
+}
 
 
 //----------------------------------------------------------
@@ -408,12 +431,6 @@ int main (int argc, char **argv)
   int i,j,k;
   int flag_graph;
   int zoom;
-  float posiy;
-  float posix;
-  float oldposy;
-  float oldposx;
-  float oldvitx;
-  float oldvity;
 
   XEvent ev;
   Window win_ppicture;
@@ -424,6 +441,8 @@ int main (int argc, char **argv)
   //>AllocMemory
   float** MatPict=dmatrix_allocate_2d(HEIGHT,WIDTH);
   float** MatPts=dmatrix_allocate_2d((int)(NB_INTERV),2);
+
+  float posix, posiy, vitx, vity;
   
   //>Init
   for(i=0;i<HEIGHT;i++) for(j=0;j<WIDTH;j++) MatPict[i][j]=GREYWHITE;
@@ -432,11 +451,9 @@ int main (int argc, char **argv)
   zoom=1;
 
   posix=0.2;
-  oldposx=0.2;
   posiy=-1.6;
-  oldposy=-1.6;
-  oldvitx=0;
-  oldvity=0;
+  vitx=0;
+  vity=0;
 
   //---------------------------------------------------------------------
   //>Question 1 
@@ -447,24 +464,19 @@ int main (int argc, char **argv)
   //Un exemple ou la matrice de points est remplie
   //par une courbe donné par l'équation d'en bas... et non pas par 
   //la solution de l'équation différentielle
-      printf("%f",posix);
 
   for(k=0;k<(int)(NB_INTERV);k++){
-    float* resx=RKFx(posix,posiy,oldposx,oldposy,oldvitx);
-    float* resy=RKFy(posix,posiy,oldposx,oldposy,oldvity);
+  printf("%f\n",posix);
+    float* resx=RKFx(posix,posiy,vitx);
+    float* resy=RKFy(posix,posiy,vity);
     MatPts[k][0]=resx[0];
     MatPts[k][1]=resy[0];
     
-    oldvitx=resx[1];
-    oldvity=resy[1];
+    vitx=resx[1];
+    vity=resy[1];
     
-    oldposx=posix;
-    posix=MatPts[k][0];
-    oldposy=posiy;
-    posiy=MatPts[k][1];
-    if(MatPts[k][0]>0){
-        printf("youpi %f\n",MatPts[k][0]);
-    }
+    posix=resx[0];
+    posiy=resy[1];
   }
   
 
@@ -518,7 +530,3 @@ int main (int argc, char **argv)
  printf("\n Fini... \n\n\n");
  return 0;
 }
-
-
-
-
