@@ -108,7 +108,7 @@ int open_display()
 
 /************************************************************************/
 /* FABRIQUE_WINDOW()							*/
-/* Cette fonction crée une fenetre X et l'affiche à l'écran.	        */
+/* Cette fonction crÃ©e une fenetre X et l'affiche Ã  l'Ã©cran.	        */
 /************************************************************************/
 Window fabrique_window(char *nom_fen,int x,int y,int width,int height,int zoom)
 {
@@ -152,7 +152,7 @@ Window fabrique_window(char *nom_fen,int x,int y,int width,int height,int zoom)
 
 /****************************************************************************/
 /* CREE_XIMAGE()							    */
-/* Crée une XImage à partir d'un tableau de float                          */
+/* CrÃ©e une XImage Ã  partir d'un tableau de float                          */
 /* L'image peut subir un zoom.						    */
 /****************************************************************************/
 XImage* cree_Ximage(float** mat,int z,int length,int width)
@@ -357,7 +357,46 @@ void Fill_Pict(float** MatPts,float** MatPict,int PtsNumber,int NbPts)
 //------------------------------------------------
 // FONCTIONS TPs----------------------------------                      
 //------------------------------------------------
-      
+float pos1x=0;
+float pos1y=1;
+float pos2x=-1/sqrt(2);
+float pos2y=-1/2;
+float pos3x=1/sqrt(2);
+float pos3y=-1/2;
+float c=0.25;
+float r=0.1;
+float d=0.3;
+float speedx=0;
+float speedy=0;
+
+
+float* RKFx(float posx, float posy, float oldposx, float oldposy, float oldvit){
+    
+    
+    float sum1=(pos1x-posx)/pow(sqrt((pow(pos1x-posx,2)+pow(pos1y-posy,2)+pow(d,2))),3);
+    float sum2=(pos2x-posx)/pow(sqrt((pow(pos2x-posx,2)+pow(pos2y-posy,2)+pow(d,2))),3);
+    float sum3=(pos3x-posx)/pow(sqrt((pow(pos3x-posx,2)+pow(pos3y-posy,2)+pow(d,2))),3);
+    float vit=(posx-oldposx)/1000;
+    float res=vit-oldvit+r*(posx-oldposx)-(sum1+sum2+sum3)+c;
+    float* result=dmatrix_allocate_1d(2);
+    result[0]=res;
+    result[1]=vit;
+    return result;
+
+};
+float* RKFy(float posx, float posy, float oldposx, float oldposy, float oldvit){
+    float sum1=(pos1y-posy)/pow(sqrt((pow(pos1x-posx,2)+pow(pos1y-posy,2)+pow(d,2))),3);
+    float sum2=(pos2y-posy)/pow(sqrt((pow(pos2x-posx,2)+pow(pos2y-posy,2)+pow(d,2))),3);
+    float sum3=(pos3y-posy)/pow(sqrt((pow(pos3x-posx,2)+pow(pos3y-posy,2)+pow(d,2))),3);
+    float vit=(posy-oldposy)/1000;
+    float res=(vit-oldvit)+r*(posy-oldposy)-(sum1+sum2+sum3)+c;
+    float *result=dmatrix_allocate_1d(2);
+    result[0]=res;
+    result[1]=vit;
+    return result;
+
+};
+
 
 //----------------------------------------------------------
 //----------------------------------------------------------
@@ -369,6 +408,12 @@ int main (int argc, char **argv)
   int i,j,k;
   int flag_graph;
   int zoom;
+  float posiy;
+  float posix;
+  float oldposy;
+  float oldposx;
+  float oldvitx;
+  float oldvity;
 
   XEvent ev;
   Window win_ppicture;
@@ -386,6 +431,12 @@ int main (int argc, char **argv)
   flag_graph=1;
   zoom=1;
 
+  posix=0.2;
+  oldposx=0.2;
+  posiy=-1.6;
+  oldposy=-1.6;
+  oldvitx=0;
+  oldvity=0;
 
   //---------------------------------------------------------------------
   //>Question 1 
@@ -394,16 +445,28 @@ int main (int argc, char **argv)
   //Il faut travailler ici ...et dans > // FONCTIONS TPs
 
   //Un exemple ou la matrice de points est remplie
-  //par une courbe donné par l'équation d'en bas... et non pas par 
-  //la solution de l'équation différentielle
- 
-  for(k=0;k<(int)(NB_INTERV);k++)
-    { 
-      MatPts[k][0]=(k/(float)(NB_INTERV))*cos((k*0.0001)*3.14159); 
-      MatPts[k][1]=(k/(float)(NB_INTERV))*sin((k*0.001)*3.14159); 
-      //>on peut essayer la ligne d'en bas aussi
-      //MatPts[k][1]=(k/(float)(NB_INTERV))*sin((k*0.0001)*3.14159); 
-     }
+  //par une courbe donnÃ© par l'Ã©quation d'en bas... et non pas par 
+  //la solution de l'Ã©quation diffÃ©rentielle
+      printf("%f",posix);
+
+  for(k=0;k<(int)(NB_INTERV);k++){
+    float* resx=RKFx(posix,posiy,oldposx,oldposy,oldvitx);
+    float* resy=RKFy(posix,posiy,oldposx,oldposy,oldvity);
+    MatPts[k][0]=resx[0];
+    MatPts[k][1]=resy[0];
+    
+    oldvitx=resx[1];
+    oldvity=resy[1];
+    
+    oldposx=posix;
+    posix=MatPts[k][0];
+    oldposy=posiy;
+    posiy=MatPts[k][1];
+    if(MatPts[k][0]>0){
+        printf("youpi %f\n",MatPts[k][0]);
+    }
+  }
+  
 
 
   //--Fin Question 1-----------------------------------------------------
@@ -425,13 +488,13 @@ int main (int argc, char **argv)
 
 
  //--------------------------------------------------------------------------------
- //-------------- visu sous XWINDOW de l'évolution de MatPts ----------------------
+ //-------------- visu sous XWINDOW de l'Ã©volution de MatPts ----------------------
  //--------------------------------------------------------------------------------
  if (flag_graph)
  {
  //>Uuverture Session Graphique
  if (open_display()<0) printf(" Impossible d'ouvrir une session graphique");
- sprintf(nomfen_ppicture,"Évolution du Graphe");
+ sprintf(nomfen_ppicture,"Ã‰volution du Graphe");
  win_ppicture=fabrique_window(nomfen_ppicture,10,10,HEIGHT,WIDTH,zoom);
  x_ppicture=cree_Ximage(MatPict,zoom,HEIGHT,WIDTH);
 
